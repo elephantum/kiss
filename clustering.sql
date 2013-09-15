@@ -1,3 +1,57 @@
+create table user_sessions as select 
+    k.p, 
+    o.order_number, 
+    k.dt, 
+    k.event, 
+    k.campaign_content,
+    k.campaign_medium,
+    k.campaign_name,
+    k.campaign_source,
+    k.campaign_terms,
+    k.search_engine,
+    k.search_terms,
+    k.json_data
+from kiss_normalized k join order_timeslot o on k.p = o.p
+where
+    k.dt >= coalesce(o.start_dt, '2000-01-01 00:00:00') and
+    k.dt <= o.end_dt;
+
+
+
+CREATE EXTERNAL TABLE session_pairs_s3(
+  p string, 
+  p2 string)
+ROW FORMAT SERDE 
+  'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe' 
+STORED AS INPUTFORMAT 
+  'org.apache.hadoop.mapred.TextInputFormat' 
+OUTPUTFORMAT 
+  'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+LOCATION
+  's3://enter-kiss-test/hive/session_pairs'
+TBLPROPERTIES (
+  'numPartitions'='0', 
+  'numFiles'='0', 
+  'transient_lastDdlTime'='1376839385', 
+  'numRows'='0', 
+  'totalSize'='0', 
+  'rawDataSize'='0');
+
+
+create external table sessions (
+    session string, 
+    alias string) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY "," 
+location 's3://enter-kiss-test/hive/sessions/';
+
+
+create external table sessions_dict (
+    session string, 
+    alias string) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY "," 
+location 's3://enter-kiss-test/hive/sessions/';
+
+
 CREATE EXTERNAL TABLE user_marker(
   p string, 
   id string, 
@@ -156,3 +210,4 @@ LOCATION
   's3://enter-kiss-test/enter_proto/referrers_100k'
 TBLPROPERTIES (
   'transient_lastDdlTime'='1379182878')
+
