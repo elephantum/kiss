@@ -25,3 +25,11 @@ session.aliases <- merge(
   x=main.alias.by.group[c('group', 'alias')], 
   by=c('group')
 )
+
+write.table(
+  file='aliases.csv',
+  x=session.aliases[c('alias.main', 'alias')],
+  sep=',',
+  col.names=FALSE,
+  row.names=FALSE
+)
