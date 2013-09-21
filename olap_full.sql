@@ -45,7 +45,6 @@ from olap_summary_daily_full
 group by p;
 
 
--- и другие поведенческие характеристики
 create table olap_summary_cumulative_full (
   p string,
   `date` string,

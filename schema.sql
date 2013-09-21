@@ -16,7 +16,6 @@ create external table kiss_raw (
 location 's3://enter-kiss-test/revisions/' ;
 
 
--- parsed data
 create external table kiss (
     p string,    
     p2 string,
@@ -37,7 +36,6 @@ location 's3://enter-kiss-test/hive/kiss/';
 alter table kiss recover partitions;
  
 
--- parsed and normalized sessions
 create external table kiss_normalized (
     p string,    
     dt string comment 'datetime',
