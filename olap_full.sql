@@ -21,13 +21,13 @@ select
   `date`, 
   1,
 
-  sum(if(event == 'ad campaign hit count daily', 1, 0)) ad_campaign_hit_count_daily,
-  sum(if(event == 'viewed product count daily', 1, 0)) viewed_product_count_daily,
-  sum(if(event == 'viewed category count daily', 1, 0)) viewed_category_count_daily,
-  sum(if(event == 'add to cart count daily', 1, 0)) add_to_cart_count_daily,
-  sum(if(event == 'view cart count daily', 1, 0)) view_cart_count_daily,
-  sum(if(event == 'checkout step 1 count daily', 1, 0)) checkout_step_1_count_daily,
-  sum(if(event == 'checkout complete count daily', 1, 0)) checkout_complete_count_daily,
+  sum(if(event == 'ad campaign hit', 1, 0)) ad_campaign_hit_count_daily,
+  sum(if(event == 'viewed product', 1, 0)) viewed_product_count_daily,
+  sum(if(event == 'viewed category', 1, 0)) viewed_category_count_daily,
+  sum(if(event == 'add to cart', 1, 0)) add_to_cart_count_daily,
+  sum(if(event == 'view cart', 1, 0)) view_cart_count_daily,
+  sum(if(event == 'checkout step 1', 1, 0)) checkout_step_1_count_daily,
+  sum(if(event == 'checkout complete', 1, 0)) checkout_complete_count_daily,
 
   sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily
 
