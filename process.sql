@@ -34,6 +34,41 @@ lateral view json_tuple(regexp_replace(kiss_raw.json_data, '\\\\', 'x'), '_p', '
 ;
 
 
+-- TODO формирование таблицы сессий
+CREATE EXTERNAL TABLE session_pairs_s3(
+  p string, 
+  p2 string)
+ROW FORMAT SERDE 
+  'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe' 
+STORED AS INPUTFORMAT 
+  'org.apache.hadoop.mapred.TextInputFormat' 
+OUTPUTFORMAT 
+  'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+LOCATION
+  's3://enter-kiss-test/hive/session_pairs'
+TBLPROPERTIES (
+  'numPartitions'='0', 
+  'numFiles'='0', 
+  'transient_lastDdlTime'='1376839385', 
+  'numRows'='0', 
+  'totalSize'='0', 
+  'rawDataSize'='0');
+
+
+create external table sessions (
+    session string, 
+    alias string) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY "," 
+location 's3://enter-kiss-test/hive/sessions/';
+
+
+create external table sessions_dict (
+    session string, 
+    alias string) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY "," 
+location 's3://enter-kiss-test/hive/sessions/';
+
+
 -- конверсия сырых в оптимизированные данные
 insert overwrite table kiss_normalized partition(`date`)
 select

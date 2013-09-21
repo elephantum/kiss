@@ -1,4 +1,4 @@
--- компрессия
+-- compression and settings
 SET mapred.output.compress=true;
 SET hive.exec.compress.output=true; 
 SET io.seqfile.compression.type=BLOCK;
@@ -9,14 +9,14 @@ SET hive.exec.max.dynamic.partitions=100000;
 SET hive.exec.max.dynamic.partitions.pernode=100000;
 
 
--- сырые данные
+-- raw data
 create external table kiss_raw (
     json_data string
 )
 location 's3://enter-kiss-test/revisions/' ;
 
 
--- оптимизированные данные
+-- parsed data
 create external table kiss (
     p string,    
     p2 string,
@@ -37,7 +37,7 @@ location 's3://enter-kiss-test/hive/kiss/';
 alter table kiss recover partitions;
  
 
--- оптимизированные данные
+-- parsed and normalized sessions
 create external table kiss_normalized (
     p string,    
     dt string comment 'datetime',
@@ -56,4 +56,3 @@ stored as rcfile
 location 's3://enter-kiss-test/hive/kiss_normalized/';
 alter table kiss_normalized recover partitions;
  
-
