@@ -35,7 +35,7 @@ from
   kiss_normalized
   lateral view json_tuple(kiss_normalized.json_data, 'checkout complete order total') ext_data as order_sum
 group by p, `date`
-order by p, `date`;
+;
 
 
 create table olap_summary_cumulative_full (
