@@ -33,3 +33,11 @@ write.table(
   col.names=FALSE,
   row.names=FALSE
 )
+
+
+
+# order_by_class <- read.table(file='report_order_total_by_user_class_100k//000000_0.gz', sep='\x01')
+# order_by_class_flat <- cast(order_by_class, V1 ~ V2, variable=V4)
+# library('reshape')
+# order_by_class_flat <- cast(order_by_class, V1 ~ V2, variable=V4)
+# barplot(t(as.matrix(order_count_by_class_flat)), legend=rownames(t(as.matrix(order_count_by_class_flat))))
