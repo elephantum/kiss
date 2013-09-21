@@ -43,6 +43,7 @@ create table olap_summary_cumulative_full (
   `date` string,
 
   days_active_daily int,
+  days_active_lifetime int,
 
   ad_campaign_hit_count_daily int,
   ad_campaign_hit_count_lifetime int,
@@ -117,9 +118,9 @@ from (
     checkout_complete_count_daily,
     sum(checkout_complete_count_daily) over w as checkout_complete_count_lifetime,
     checkout_complete_sum_daily,
-    sum(checkout_complete_sum_daily) over w as checkout_complete_sum_lifetime,
+    sum(checkout_complete_sum_daily) over w as checkout_complete_sum_lifetime
 
-  from olap_summary_daily_full daily
+  from olap_summary_daily_full
   window w as (PARTITION BY p ORDER BY `date` ROWS UNBOUNDED PRECEDING)
 ) t 
 join (
