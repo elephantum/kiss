@@ -38,13 +38,6 @@ group by p, `date`
 order by p, `date`;
 
 
-create table user_first_event_full as select
-p,
-min(`date`) as start
-from olap_summary_daily_full
-group by p;
-
-
 create table olap_summary_cumulative_full (
   p string,
   `date` string,
@@ -129,7 +122,13 @@ from (
   from olap_summary_daily_full daily
   window w as (PARTITION BY p ORDER BY `date` ROWS UNBOUNDED PRECEDING)
 ) t 
-join user_first_event_full on t.p = user_first_event_full.p
+join (
+  select
+    p,
+    min(`date`) as start
+  from olap_summary_daily_full
+  group by p
+) user_first_event_full on t.p = user_first_event_full.p
 ;
 
 
