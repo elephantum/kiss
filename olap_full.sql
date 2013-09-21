@@ -1,7 +1,6 @@
 -- и другие поведенческие характеристики
-create table olap_summary_daily_full (
+create external table olap_summary_daily_full (
   p string,
-  `date` string,
   days_active_daily int,
 
   ad_campaign_hit_count_daily int,
@@ -12,13 +11,14 @@ create table olap_summary_daily_full (
   checkout_step_1_count_daily int,
   checkout_complete_count_daily int,
   checkout_complete_sum_daily float
-);
+)
+partitioned by (`date` string)
+location 's3://enter-kiss-test/enter_proto/olap_summary_daily_full/';
 
 
-insert into table olap_summary_daily_full
+insert overwrite table olap_summary_daily_full partition(`date`)
 select
   p, 
-  `date`, 
   1,
 
   sum(if(event == 'ad campaign hit', 1, 0)) ad_campaign_hit_count_daily,
@@ -29,7 +29,9 @@ select
   sum(if(event == 'checkout step 1', 1, 0)) checkout_step_1_count_daily,
   sum(if(event == 'checkout complete', 1, 0)) checkout_complete_count_daily,
 
-  sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily
+  sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily,
+
+  `date`
 
 from 
   kiss_normalized
@@ -38,9 +40,8 @@ group by p, `date`
 ;
 
 
-create table olap_summary_cumulative_full (
+create table olap_summary_cumulative_full_s3 (
   p string,
-  `date` string,
 
   days_active_daily int,
   days_active_lifetime int,
@@ -63,13 +64,14 @@ create table olap_summary_cumulative_full (
   checkout_complete_sum_lifetime float,
 
   user_class string
-);
+)
+partitioned by (`date` string)
+location 's3://enter-kiss-test/enter_proto/olap_summary_cumulative_full/';
 
 
-insert into table olap_summary_cumulative_full
+insert overwrite table olap_summary_cumulative_full partition(`date`)
 select
   t.p,
-  t.`date`,
 
   days_active_daily,
   days_active_lifetime,
@@ -91,10 +93,13 @@ select
   checkout_complete_sum_daily,
   checkout_complete_sum_lifetime,
 
-  if(t.checkout_complete_sum_lifetime = 0, 'lead',
-  if(t.checkout_complete_sum_lifetime = 1, 'new',
-  if(datediff(t.`date`, user_first_event_full.start) / (t.checkout_complete_sum_lifetime + 1) < 30, 'core',
-  'xz')))
+  if(t.checkout_complete_count_lifetime = 0, 'lead',
+  if(t.checkout_complete_count_lifetime = 1, 'new',
+  if(datediff(t.`date`, user_first_event_full.start) / (t.checkout_complete_count_lifetime + 1) < 30, 'core',
+  'xz'))) user_class,
+
+  t.`date`
+
 from (
   select 
     p,
@@ -130,15 +135,24 @@ join (
   from olap_summary_daily_full
   group by p
 ) user_first_event_full on t.p = user_first_event_full.p
+order by p, user_class
 ;
 
 
-create table report_order_sum_by_user_class_full as
+create table report_order_sum_by_user_class_full (
+  `date` string,
+  user_class string,
+  checkout_complete_count_daily int,
+  checkout_complete_sum_daily float
+)
+location 's3://enter-kiss-test/enter_proto/report_order_sum_by_user_class_full/';
+
+insert overwrite table report_order_sum_by_user_class_full
 select
   `date`,
   user_class,
-  sum(order_count_daily),
-  sum(order_sum_daily)
+  sum(checkout_complete_count_daily),
+  sum(checkout_complete_sum_daily)
 from olap_summary_cumulative_full
 group by `date`, user_class
 order by `date`, user_class;
