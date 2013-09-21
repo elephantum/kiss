@@ -82,11 +82,11 @@ order by p, `date`, event;
 
 
 
+-- и другие поведенческие характеристики
 create table olap_daily_summary_10k (
   p string,
   `date` string,
   daily_all_events_count int,
-  -- другие поведенческие характеристики
   daily_order_total float,
   daily_order_count int
 );
@@ -98,33 +98,34 @@ p,
 `date`, 
 count(*) daily_all_events_count,
 sum(coalesce(cast(ext_data.order_total as float), 0)) daily_order_total,
-sum(event == 'checkout complete') daily_order_count
+sum(if(event == 'checkout complete', 1, 0)) daily_order_count
 from kiss_10k
 lateral view json_tuple(kiss_10k.json_data, 'checkout complete order total') ext_data as order_total
 group by p, `date`
 order by p, `date`;
 
 
-create table user_start as select
+create table user_first_event_10k as select
 p,
 min(`date`) as start
-from summary_10k
+from olap_daily_summary_10k
 group by p;
 
 
+-- и другие поведенческие характеристики
 create table olap_cumulative_summary_10k (
   p string,
   `date` string,
 
   daily_all_events_count int,
   cumulative_all_events_count int,
-  -- другие поведенческие характеристики
+
   daily_order_total float,
   cumulative_order_total float,
   daily_order_count int,
   cumulative_order_count int,
 
-  client_class string
+  user_class string
 );
 
 
@@ -140,7 +141,7 @@ select
   t.cumulative_order_count,
 
   if(t.cumulative_order_count <= 1, 'new',
-  if(datediff(t.`date`, user_start.start) / (t.cumulative_order_count + 1) < 30, 'core',
+  if(datediff(t.`date`, user_first_event_10k.start) / (t.cumulative_order_count + 1) < 30, 'core',
   'xz'))
 from (
   select 
@@ -155,9 +156,19 @@ from (
   from olap_daily_summary_10k daily
   window w as (PARTITION BY p ORDER BY `date` ROWS UNBOUNDED PRECEDING)
 ) t 
-join user_start on daily.p = user_start.p
+join user_first_event_10k on t.p = user_first_event_10k.p
 ;
 
+
+create table report_order_total_by_user_class_10k as
+select
+  `date`,
+  user_class,
+  sum(daily_order_count),
+  sum(daily_order_total)
+from olap_cumulative_summary_10k
+group by `date`, user_class
+order by `date`, user_class;
 
 
 select
