@@ -1,4 +1,3 @@
--- и другие поведенческие характеристики
 create external table olap_summary_daily_full (
   p string,
   days_active_daily int,
@@ -14,7 +13,7 @@ create external table olap_summary_daily_full (
 )
 partitioned by (`date` string)
 location 's3://enter-kiss-test/enter_proto/olap_summary_daily_full/';
-
+alter table olap_summary_daily_full recover partitions;
 
 insert overwrite table olap_summary_daily_full partition(`date`)
 select
@@ -40,7 +39,7 @@ group by p, `date`
 ;
 
 
-create table olap_summary_cumulative_full_s3 (
+create table olap_summary_cumulative_full (
   p string,
 
   days_active_daily int,
@@ -139,18 +138,20 @@ order by p, user_class
 ;
 
 
-create table report_order_sum_by_user_class_full (
+create table report_by_user_class_full (
   `date` string,
   user_class string,
+  visits int,
   checkout_complete_count_daily int,
   checkout_complete_sum_daily float
 )
 location 's3://enter-kiss-test/enter_proto/report_order_sum_by_user_class_full/';
 
-insert overwrite table report_order_sum_by_user_class_full
+insert overwrite table report_by_user_class_full
 select
   `date`,
   user_class,
+  sum(days_active_daily),
   sum(checkout_complete_count_daily),
   sum(checkout_complete_sum_daily)
 from olap_summary_cumulative_full
