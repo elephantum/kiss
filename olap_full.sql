@@ -66,7 +66,7 @@ create table olap_summary_cumulative_full (
 )
 partitioned by (`date` string)
 location 's3://enter-kiss-test/enter_proto/olap_summary_cumulative_full/';
-
+alter table olap_summary_cumulative_full recover partitions;
 
 insert overwrite table olap_summary_cumulative_full partition(`date`)
 select
@@ -158,4 +158,23 @@ from olap_summary_cumulative_full
 group by `date`, user_class
 order by `date`, user_class;
 
+create table report_by_orders_count_full (
+  `date` string,
+  order_count_lifetime int,
+  visits int,
+  checkout_complete_count_daily int,
+  checkout_complete_sum_daily float
+)
+location 's3://enter-kiss-test/enter_proto/report_by_user_class_full/';
+
+insert overwrite table report_by_orders_count_full
+select
+  `date`,
+  checkout_complete_count_lifetime,
+  sum(days_active_daily),
+  sum(checkout_complete_count_daily),
+  sum(checkout_complete_sum_daily)
+from olap_summary_cumulative_full
+group by `date`, checkout_complete_count_lifetime
+order by `date`, checkout_complete_count_lifetime;
 
