@@ -27,7 +27,6 @@ location 's3://enter-kiss-test/enter_proto_full_2013_09_23/session_pairs/';
 create external table session_alias_full_2013_09_23 (
     session string, 
     alias string) 
-ROW FORMAT DELIMITED FIELDS TERMINATED BY "," 
 location 's3://enter-kiss-test/enter_proto_full_2013_09_23/sessions/';
 
 
