@@ -40,6 +40,10 @@ from kiss_full_2013_09_23
 where p2 is not null;
 
 
+-- create aliases.csv
+-- upload to S3
+
+
 insert overwrite table kiss_normalized_full_2013_09_23 partition(`date`)
 select
     coalesce(sessions.session, kiss.p), 

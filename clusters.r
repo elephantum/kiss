@@ -1,6 +1,11 @@
 library('igraph')
 
-pairs <- read.csv('session_pairs.hive', sep='\x01', header=FALSE, col.names=c('a', 'b'))
+hive.filenames <- list.files('enter_proto_full_2013_09_23/session_pairs', full.names=TRUE)
+hive.data <- lapply(
+  X=hive.filenames,
+  FUN=function(x) {print(x); as.matrix(read.csv(x, sep='\x01', header=FALSE, col.names=c('a', 'b')))})
+
+pairs <- do.call(rbind, hive.data)
 
 g <- graph.edgelist(as.matrix(pairs), directed=FALSE)
 
