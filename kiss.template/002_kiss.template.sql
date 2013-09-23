@@ -40,19 +40,4 @@ from kiss_{data_source}
 where p2 is not null;
 
 
-insert overwrite table kiss_normalized_{data_source} partition(`date`)
-select
-    coalesce(sessions.session, kiss.p), 
-    dt, 
-    event,
-    campaign_content,
-    campaign_medium,
-    campaign_name,
-    campaign_source,
-    campaign_terms,
-    search_engine,
-    search_terms,
-    json_data, 
-    `date`
-from kiss_{data_source} kiss
-left outer join session_alias_{data_source} sessions on kiss.p = sessions.alias;
+-- !!!! clusters.r
