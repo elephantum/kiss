@@ -68,41 +68,79 @@ LOCATION
   's3://enter-kiss-test/enter_proto/referrers_100k';
 
 
-create table summary_10k as 
-select 
-p, 
-`date`, 
-event, 
-count(*) c, 
-sum(coalesce(cast(order_total as int), 0)) order_total
-from kiss_10k
-lateral view json_tuple(kiss_10k.json_data, 'checkout complete order total') ext_data as order_total
-group by p, `date`, event
-order by p, `date`, event;
-
-
-
--- и другие поведенческие характеристики
-create table olap_daily_summary_10k (
+create table olap_summary_daily_10k (
   p string,
-  `date` string,
-  daily_all_events_count int,
-  daily_order_total float,
-  daily_order_count int
-);
+  days_active_daily int,
+  days_with_checkout_daily int,
+
+  ad_campaign_hit_count_daily int,
+
+  cheap_traffic_ad_hit_count_daily int,
+  actionpay_ad_hit_count_daily int,
+  yandexmarket_ad_hit_count_daily int,
+  yandex_ad_hit_count_daily int,
+  enter_ad_hit_count_daily int,
+  other_ad_hit_count_daily int,
+
+  viewed_product_count_daily int,
+  viewed_category_count_daily int,
+  add_to_cart_count_daily int,
+  view_cart_count_daily int,
+  checkout_step_1_count_daily int,
+  checkout_complete_count_daily int,
+
+  checkout_complete_sum_daily float
+)
+partitioned by (`date` string)
+location 's3://enter-kiss-test/enter_proto/olap_summary_daily_10k/';
+alter table olap_summary_daily_10k recover partitions;
 
 
-insert into table olap_daily_summary_10k
+insert overwrite table olap_summary_daily_10k partition(`date`)
 select
-p, 
-`date`, 
-count(*) daily_all_events_count,
-sum(coalesce(cast(ext_data.order_total as float), 0)) daily_order_total,
-sum(if(event == 'checkout complete', 1, 0)) daily_order_count
-from kiss_10k
-lateral view json_tuple(kiss_10k.json_data, 'checkout complete order total') ext_data as order_total
+  p, 
+  1,
+  if(sum(if(event == 'checkout complete', 1, 0)) > 0, 1, 0),
+
+  sum(if(event == 'ad campaign hit', 1, 0)) ad_campaign_hit_count_daily,
+
+  sum(if(campaign_source_norm == 'cheap_traffic', 1, 0)) cheap_traffic_ad_hit_count_daily,
+  sum(if(campaign_source_norm == 'actionpay', 1, 0)) actionpay_ad_hit_count_daily,
+  sum(if(campaign_source_norm == 'yandexmarket', 1, 0)) yandexmarket_ad_hit_count_daily,
+  sum(if(campaign_source_norm == 'yandex', 1, 0)) yandex_ad_hit_count_daily,
+  sum(if(campaign_source_norm == 'enter', 1, 0)) enter_ad_hit_count_daily,
+  sum(if(campaign_source_norm == 'other', 1, 0)) other_ad_hit_count_daily,
+
+  sum(if(event == 'viewed product', 1, 0)) viewed_product_count_daily,
+  sum(if(event == 'viewed category', 1, 0)) viewed_category_count_daily,
+  sum(if(event == 'add to cart', 1, 0)) add_to_cart_count_daily,
+  sum(if(event == 'view cart', 1, 0)) view_cart_count_daily,
+  sum(if(event == 'checkout step 1', 1, 0)) checkout_step_1_count_daily,
+  sum(if(event == 'checkout complete', 1, 0)) checkout_complete_count_daily,
+
+  sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily,
+
+  `date`
+
+from 
+  (
+    select 
+      kiss_10k.*,
+      if(campaign_source like 'cheap_traffic', 'cheap_traffic',
+      if(campaign_source like 'actionpay', 'actionpay',
+
+      if(campaign_source like 'yandexmarket%', 'yandexmarket',
+      if(campaign_source like 'yandex%', 'yandex',
+      if(campaign_source like 'enter%', 'enter',
+
+      'other'
+      ))))) campaign_source_norm
+    from
+    kiss_10k
+  ) kiss_10k
+  lateral view json_tuple(kiss_10k.json_data, 'checkout complete order total') ext_data as order_sum
 group by p, `date`
-order by p, `date`;
+;
 
 
 create table user_first_event_10k as select

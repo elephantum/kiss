@@ -3,6 +3,14 @@ create external table olap_summary_daily_full (
   days_active_daily int,
 
   ad_campaign_hit_count_daily int,
+
+  cheap_traffic_ad_hit_count_daily int,
+  actionpay_ad_hit_count_daily int,
+  yandexmarket_ad_hit_count_daily int,
+  yandex_ad_hit_count_daily int,
+  enter_ad_hit_count_daily int,
+  other_ad_hit_count_daily int,
+
   viewed_product_count_daily int,
   viewed_category_count_daily int,
   add_to_cart_count_daily int,
@@ -14,6 +22,7 @@ create external table olap_summary_daily_full (
 partitioned by (`date` string)
 location 's3://enter-kiss-test/enter_proto/olap_summary_daily_full/';
 alter table olap_summary_daily_full recover partitions;
+
 
 insert overwrite table olap_summary_daily_full partition(`date`)
 select
@@ -28,12 +37,33 @@ select
   sum(if(event == 'checkout step 1', 1, 0)) checkout_step_1_count_daily,
   sum(if(event == 'checkout complete', 1, 0)) checkout_complete_count_daily,
 
+  sum(if(campaign_source_norm == 'cheap_traffic', 1, 0)) cheap_traffic_ad_hit_count_daily,
+  sum(if(campaign_source_norm == 'actionpay', 1, 0)) actionpay_ad_hit_count_daily,
+  sum(if(campaign_source_norm == 'yandexmarket', 1, 0)) yandexmarket_ad_hit_count_daily,
+  sum(if(campaign_source_norm == 'yandex', 1, 0)) yandex_ad_hit_count_daily,
+  sum(if(campaign_source_norm == 'enter', 1, 0)) enter_ad_hit_count_daily,
+  sum(if(campaign_source_norm == 'other', 1, 0)) other_ad_hit_count_daily,
+
   sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily,
 
   `date`
 
 from 
-  kiss_normalized
+  (
+    select 
+      kiss_normalized.*,
+      if(instr(campaign_source, 'cheap_traffic') == 1, 'cheap_traffic',
+      if(instr(campaign_source, 'actionpay') == 1, 'actionpay',
+
+      if(instr(campaign_source, 'yandexmarket') == 1, 'yandexmarket',
+      if(instr(campaign_source, 'yandex') == 1, 'yandex',
+      if(instr(campaign_source, 'enter') == 1, 'enter',
+
+      'other'
+      ))))) campaign_source_norm
+    from
+    kiss_normalized
+  ) kiss_normalized
   lateral view json_tuple(kiss_normalized.json_data, 'checkout complete order total') ext_data as order_sum
 group by p, `date`
 ;
