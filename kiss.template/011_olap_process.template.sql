@@ -44,7 +44,7 @@ from
       ))))) campaign_source_norm
     from
     kiss_{data_source} kiss
-    left outer join session_alias_full_2013_09_23 sessions on kiss.p = sessions.alias
+    left outer join session_alias_{data_source} sessions on kiss.p = sessions.alias
   ) kiss
   lateral view json_tuple(kiss.json_data, 'checkout complete order total') ext_data as order_sum
 group by p, `date`
