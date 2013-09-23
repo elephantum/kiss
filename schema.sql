@@ -9,7 +9,6 @@ SET hive.exec.max.dynamic.partitions=100000;
 SET hive.exec.max.dynamic.partitions.pernode=100000;
 
 
--- raw data
 create external table kiss_raw (
     json_data string
 )
