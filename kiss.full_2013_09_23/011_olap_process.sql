@@ -2,7 +2,7 @@ insert overwrite table olap_summary_daily_full_2013_09_23 partition(`date`)
 select
   p, 
   1,
-  if(checkout_complete_count_daily > 0, 1, 0),
+  if(sum(if(event == 'checkout complete', 1, 0)) > 0, 1, 0),
 
   sum(if(event == 'ad campaign hit', 1, 0)) ad_campaign_hit_count_daily,
 
@@ -13,14 +13,14 @@ select
   sum(if(campaign_source_norm == 'enter', 1, 0)) enter_ad_hit_count_daily,
   sum(if(campaign_source_norm == 'other', 1, 0)) other_ad_hit_count_daily,
 
-  viewed_product_count_daily,
-  viewed_category_count_daily,
-  add_to_cart_count_daily,
-  view_cart_count_daily,
-  checkout_step_1_count_daily,
-  checkout_complete_count_daily,
+  sum(if(event == 'viewed product', 1, 0)) viewed_product_count_daily,
+  sum(if(event == 'viewed category', 1, 0)) viewed_category_count_daily,
+  sum(if(event == 'add to cart', 1, 0)) add_to_cart_count_daily,
+  sum(if(event == 'view cart', 1, 0)) view_cart_count_daily,
+  sum(if(event == 'checkout step 1', 1, 0)) checkout_step_1_count_daily,
+  sum(if(event == 'checkout complete', 1, 0)) checkout_complete_count_daily,
 
-  checkout_complete_sum_daily,
+  sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily,
 
   `date`
 
@@ -32,15 +32,6 @@ from
 
       kiss.event,
       kiss.json_data,
-
-      sum(if(event == 'viewed product', 1, 0)) viewed_product_count_daily,
-      sum(if(event == 'viewed category', 1, 0)) viewed_category_count_daily,
-      sum(if(event == 'add to cart', 1, 0)) add_to_cart_count_daily,
-      sum(if(event == 'view cart', 1, 0)) view_cart_count_daily,
-      sum(if(event == 'checkout step 1', 1, 0)) checkout_step_1_count_daily,
-      sum(if(event == 'checkout complete', 1, 0)) checkout_complete_count_daily,
-
-      sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily,
 
       if(campaign_source like 'cheap_traffic', 'cheap_traffic',
       if(campaign_source like 'actionpay', 'actionpay',
