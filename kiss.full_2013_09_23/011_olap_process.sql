@@ -27,7 +27,7 @@ select
 from 
   (
     select 
-      coalesce(sessions.session, kiss.p) p, 
+      kiss.p,
       kiss.`date`,
 
       kiss.event,
@@ -44,12 +44,14 @@ from
       ))))) campaign_source_norm
     from
     kiss_full_2013_09_23 kiss
-    left outer join session_alias_full_2013_09_23 sessions on kiss.p = sessions.alias
   ) kiss
   lateral view json_tuple(kiss.json_data, 'checkout complete order total') ext_data as order_sum
 group by p, `date`
 ;
 
+
+-- coalesce(sessions.session, kiss.p) p, 
+--     left outer join session_alias_full_2013_09_23 sessions on kiss.p = sessions.alias
 
 insert overwrite table olap_summary_cumulative_full_2013_09_23 partition(`date`)
 select
