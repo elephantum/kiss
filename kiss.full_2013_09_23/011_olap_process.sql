@@ -46,12 +46,66 @@ from
     kiss_full_2013_09_23 kiss
   ) kiss
   lateral view json_tuple(kiss.json_data, 'checkout complete order total') ext_data as order_sum
-group by p, `date`
-;
+group by p, `date`;
 
 
--- coalesce(sessions.session, kiss.p) p, 
---     left outer join session_alias_full_2013_09_23 sessions on kiss.p = sessions.alias
+insert overwrite table olap_summary_daily_normalized_full_2013_09_23 partition(`date`)
+select
+  p,
+
+  if(sum(days_active_daily) > 0, 1, 0),
+  if(sum(days_with_checkout_daily) > 0, 1, 0),
+
+  sum(ad_campaign_hit_count_daily),
+
+  sum(cheap_traffic_ad_hit_count_daily),
+  sum(actionpay_ad_hit_count_daily),
+  sum(yandexmarket_ad_hit_count_daily),
+  sum(yandex_ad_hit_count_daily),
+  sum(enter_ad_hit_count_daily),
+  sum(other_ad_hit_count_daily),
+
+  sum(viewed_product_count_daily),
+  sum(viewed_category_count_daily),
+  sum(add_to_cart_count_daily),
+  sum(view_cart_count_daily),
+  sum(checkout_step_1_count_daily),
+  sum(checkout_complete_count_daily),
+
+  sum(checkout_complete_sum_daily),
+
+  `date`
+from (
+  select 
+  coalesce(sessions.session, d.p) p,
+
+  days_active_daily,
+  days_with_checkout_daily,
+
+  ad_campaign_hit_count_daily,
+
+  cheap_traffic_ad_hit_count_daily,
+  actionpay_ad_hit_count_daily,
+  yandexmarket_ad_hit_count_daily,
+  yandex_ad_hit_count_daily,
+  enter_ad_hit_count_daily,
+  other_ad_hit_count_daily,
+
+  viewed_product_count_daily,
+  viewed_category_count_daily,
+  add_to_cart_count_daily,
+  view_cart_count_daily,
+  checkout_step_1_count_daily,
+  checkout_complete_count_daily,
+
+  checkout_complete_sum_daily,
+
+  `date`
+  from olap_summary_daily_full_2013_09_23 d
+  left outer join session_alias_full_2013_09_23 sessions on d.p = sessions.alias
+) d
+group by p, `date`;
+
 
 insert overwrite table olap_summary_cumulative_full_2013_09_23 partition(`date`)
 select
