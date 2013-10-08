@@ -3,16 +3,9 @@ create table kiss_{data_source} (
     p2 string,
     dt string comment 'datetime',
     event string comment 'event',
-    campaign_content string,
-    campaign_medium string,
-    campaign_name string,
-    campaign_source string,
-    campaign_terms string,
-    search_engine string,
-    search_terms string,
     json_data string comment 'original json'
 )
-partitioned by (`date` string)
+partitioned by (year_month string)
 stored as rcfile
 location 's3://enter-kiss-test/enter_proto_{data_source}/kiss_{data_source}/';
 alter table kiss_{data_source} recover partitions;

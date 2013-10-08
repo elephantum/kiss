@@ -1,7 +1,7 @@
 import glob
 import os.path
 
-data_source = 'full_2013_09_23'
+data_source = 'full_2013_10_08'
 
 dirname = 'kiss.{data_source}'.format(data_source=data_source)
 if not os.path.isdir(dirname): os.mkdir(dirname)

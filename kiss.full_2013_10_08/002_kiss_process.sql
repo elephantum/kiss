@@ -1,4 +1,4 @@
-insert overwrite table kiss_{data_source} partition(`date`)
+insert overwrite table kiss_full_2013_10_08 partition(`date`)
 select
     parsed.p as p, 
     parsed.p2 as p2,
@@ -10,10 +10,10 @@ from kiss_raw
 lateral view json_tuple(regexp_replace(kiss_raw.json_data, '\\\\', 'x'), '_p', '_p2', '_n', '_t', ) parsed as p, p2, n, t;
 
 
-insert overwrite table session_pairs_{data_source}
+insert overwrite table session_pairs_full_2013_10_08
 select
 p, p2
-from kiss_{data_source}
+from kiss_full_2013_10_08
 where p2 is not null;
 
 
