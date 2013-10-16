@@ -69,7 +69,7 @@ select
     parsed.`viewed_product_product_status`,
     parsed.`viewed_product_sku`
 from kiss_raw 
-lateral view json_tuple(regexp_replace(kiss_raw.json_data, '\\', 'x'), 
+lateral view json_tuple(regexp_replace(kiss_raw.json_data, '\\\\', 'x'), 
     "_n",
     "_p",
     "_p2",
