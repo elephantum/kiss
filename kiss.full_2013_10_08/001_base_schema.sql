@@ -5,10 +5,9 @@ create table kiss_full_2013_10_08 (
     event string comment 'event',
     json_data string comment 'original json'
 )
-partitioned by (year_month string)
 stored as rcfile
 location 's3://enter-kiss-test/enter_proto_full_2013_10_08/kiss_full_2013_10_08/';
-alter table kiss_full_2013_10_08 recover partitions;
+
 
 
 create table session_pairs_full_2013_10_08(

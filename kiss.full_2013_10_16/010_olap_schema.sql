@@ -1,4 +1,4 @@
-create table olap_summary_daily_full_2013_10_08 (
+create table olap_summary_daily_full_2013_10_16 (
   p string,
 
   days_active_daily int,
@@ -23,12 +23,11 @@ create table olap_summary_daily_full_2013_10_08 (
   checkout_complete_sum_daily float
 )
 partitioned by (`date` string)
-stored as rcfile
-location 's3://enter-kiss-test/enter_proto_full_2013_10_08/olap_summary_daily_full_2013_10_08/';
-alter table olap_summary_daily_full_2013_10_08 recover partitions;
+location 's3://enter-kiss-test/enter_proto_full_2013_10_16/olap_summary_daily_full_2013_10_16/';
+alter table olap_summary_daily_full_2013_10_16 recover partitions;
 
 
-create table olap_summary_daily_normalized_full_2013_10_08 (
+create table olap_summary_daily_normalized_full_2013_10_16 (
   p string,
 
   days_active_daily int,
@@ -53,11 +52,11 @@ create table olap_summary_daily_normalized_full_2013_10_08 (
   checkout_complete_sum_daily float
 )
 partitioned by (`date` string)
-location 's3://enter-kiss-test/enter_proto_full_2013_10_08/olap_summary_daily_normalized_full_2013_10_08/';
-alter table olap_summary_daily_full_2013_10_08 recover partitions;
+location 's3://enter-kiss-test/enter_proto_full_2013_10_16/olap_summary_daily_normalized_full_2013_10_16/';
+alter table olap_summary_daily_full_2013_10_16 recover partitions;
 
 
-create table olap_summary_cumulative_full_2013_10_08 (
+create table olap_summary_cumulative_full_2013_10_16 (
   p string,
 
   days_active_daily int,
@@ -85,5 +84,5 @@ create table olap_summary_cumulative_full_2013_10_08 (
   user_class string
 )
 partitioned by (`date` string)
-location 's3://enter-kiss-test/enter_proto_full_2013_10_08/olap_summary_cumulative_full_2013_10_08/';
-alter table olap_summary_cumulative_full_2013_10_08 recover partitions;
+location 's3://enter-kiss-test/enter_proto_full_2013_10_16/olap_summary_cumulative_full_2013_10_16/';
+alter table olap_summary_cumulative_full_2013_10_16 recover partitions;

@@ -1,4 +1,4 @@
-insert overwrite table kiss_{data_source}
+insert overwrite table kiss_full_2013_10_16
 select
     from_unixtime(cast(parsed.`_t` as int)) as dt, 
     parsed.`_n`,
@@ -207,10 +207,10 @@ parsed as
     `viewed_product_sku`;
 
 
-insert overwrite table session_pairs_{data_source}
+insert overwrite table session_pairs_full_2013_10_16
 select
 `_p`, `_p2`
-from kiss_{data_source}
+from kiss_full_2013_10_16
 where `_p2` is not null;
 
 

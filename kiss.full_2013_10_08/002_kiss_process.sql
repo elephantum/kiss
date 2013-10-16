@@ -1,13 +1,12 @@
-insert overwrite table kiss_full_2013_10_08 partition(`date`)
+insert overwrite table kiss_full_2013_10_08
 select
     parsed.p as p, 
     parsed.p2 as p2,
     from_unixtime(cast(parsed.t as int)) as dt, 
     parsed.n as event,
-    regexp_replace(kiss_raw.json_data, '\\\\', 'x'), 
-    printf('%04d-%02d', year(dt), month(dt))
+    regexp_replace(kiss_raw.json_data, '\\\\', 'x')
 from kiss_raw 
-lateral view json_tuple(regexp_replace(kiss_raw.json_data, '\\\\', 'x'), '_p', '_p2', '_n', '_t', ) parsed as p, p2, n, t;
+lateral view json_tuple(regexp_replace(kiss_raw.json_data, '\\\\', 'x'), '_p', '_p2', '_n', '_t') parsed as p, p2, n, t;
 
 
 insert overwrite table session_pairs_full_2013_10_08

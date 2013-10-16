@@ -1,4 +1,4 @@
-create table kiss_{data_source} (
+create table kiss_full_2013_10_16 (
     dt string,
     `_n` string,
     `_p` string,
@@ -69,16 +69,16 @@ create table kiss_{data_source} (
     `viewed_product_sku` string
 )
 stored as rcfile
-location 's3://enter-kiss-test/enter_proto_{data_source}/kiss_{data_source}/';
+location 's3://enter-kiss-test/enter_proto_full_2013_10_16/kiss_full_2013_10_16/';
 
 
-create table session_pairs_{data_source}(
+create table session_pairs_full_2013_10_16(
   p string, 
   p2 string)
-location 's3://enter-kiss-test/enter_proto_{data_source}/session_pairs/';
+location 's3://enter-kiss-test/enter_proto_full_2013_10_16/session_pairs/';
 
 
-create external table session_alias_{data_source} (
+create external table session_alias_full_2013_10_16 (
     session string, 
     alias string) 
-location 's3://enter-kiss-test/enter_proto_{data_source}/sessions/';
+location 's3://enter-kiss-test/enter_proto_full_2013_10_16/sessions/';
