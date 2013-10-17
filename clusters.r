@@ -32,7 +32,7 @@ session.aliases <- merge(
 )
 
 write.table(
-  file='enter_proto_full_2013_09_23/aliases.csv',
+  file='enter_proto_full_2013_10_16/aliases.csv',
   x=session.aliases[c('alias.main', 'alias')],
   sep='\x01',
   col.names=FALSE,
