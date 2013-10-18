@@ -22,30 +22,29 @@ select
 
   sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily,
 
-  `date`
+  to_date(kiss.dt)
 
 from 
   (
     select 
-      kiss.p,
+      kiss.`_p` as p,
       kiss.`date`,
 
-      kiss.event,
-      kiss.json_data,
+      kiss.`_n` as event,
+      kiss.checkout_complete_order_total as order_sum,
 
-      if(campaign_source like 'cheap_traffic', 'cheap_traffic',
-      if(campaign_source like 'actionpay', 'actionpay',
+      if(kiss.campaign_source like 'cheap_traffic', 'cheap_traffic',
+      if(kiss.campaign_source like 'actionpay', 'actionpay',
 
-      if(campaign_source like 'yandexmarket%', 'yandexmarket',
-      if(campaign_source like 'yandex%', 'yandex',
-      if(campaign_source like 'enter%', 'enter',
+      if(kiss.campaign_source like 'yandexmarket%', 'yandexmarket',
+      if(kiss.campaign_source like 'yandex%', 'yandex',
+      if(kiss.campaign_source like 'enter%', 'enter',
 
       'other'
       ))))) campaign_source_norm
     from
     kiss_{data_source} kiss
   ) kiss
-  lateral view json_tuple(kiss.json_data, 'checkout complete order total') ext_data as order_sum
 group by p, `date`;
 
 
