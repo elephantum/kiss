@@ -1,3 +1,7 @@
+-- In [22]: r = re.compile(r'([^\\])\\(\d)')
+-- In [23]: r.sub(r'\1x\2', i)
+
+
 insert overwrite table kiss_full_2013_10_16
 select
     from_unixtime(cast(parsed.`_t` as int)) as dt, 

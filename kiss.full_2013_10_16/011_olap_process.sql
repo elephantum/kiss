@@ -1,5 +1,7 @@
 insert overwrite table olap_summary_daily_full_2013_10_16 partition(`date`)
 select
+  `date`,
+
   p, 
   1,
   if(sum(if(event == 'checkout complete', 1, 0)) > 0, 1, 0),
@@ -20,37 +22,35 @@ select
   sum(if(event == 'checkout step 1', 1, 0)) checkout_step_1_count_daily,
   sum(if(event == 'checkout complete', 1, 0)) checkout_complete_count_daily,
 
-  sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily,
-
-  `date`
+  sum(coalesce(cast(kiss.order_sum as float), 0)) checkout_complete_sum_daily
 
 from 
   (
     select 
-      kiss.p,
-      kiss.`date`,
+      kiss.`_p` as p,
+      to_date(kiss.dt) as `date`,
 
-      kiss.event,
-      kiss.json_data,
+      kiss.`_n` as event,
+      kiss.checkout_complete_order_total as order_sum,
 
-      if(campaign_source like 'cheap_traffic', 'cheap_traffic',
-      if(campaign_source like 'actionpay', 'actionpay',
+      if(kiss.campaign_source like 'cheap_traffic', 'cheap_traffic',
+      if(kiss.campaign_source like 'actionpay', 'actionpay',
 
-      if(campaign_source like 'yandexmarket%', 'yandexmarket',
-      if(campaign_source like 'yandex%', 'yandex',
-      if(campaign_source like 'enter%', 'enter',
+      if(kiss.campaign_source like 'yandexmarket%', 'yandexmarket',
+      if(kiss.campaign_source like 'yandex%', 'yandex',
+      if(kiss.campaign_source like 'enter%', 'enter',
 
       'other'
       ))))) campaign_source_norm
     from
     kiss_full_2013_10_16 kiss
   ) kiss
-  lateral view json_tuple(kiss.json_data, 'checkout complete order total') ext_data as order_sum
 group by p, `date`;
 
 
-insert overwrite table olap_summary_daily_normalized_full_2013_10_16 partition(`date`)
+insert overwrite table olap_summary_daily_normalized_full_2013_10_16
 select
+  `date`,
   p,
 
   if(sum(days_active_daily) > 0, 1, 0),
@@ -72,9 +72,8 @@ select
   sum(checkout_step_1_count_daily),
   sum(checkout_complete_count_daily),
 
-  sum(checkout_complete_sum_daily),
+  sum(checkout_complete_sum_daily)
 
-  `date`
 from (
   select 
   coalesce(sessions.session, d.p) p,
@@ -107,8 +106,9 @@ from (
 group by p, `date`;
 
 
-insert overwrite table olap_summary_cumulative_full_2013_10_16 partition(`date`)
+insert overwrite table olap_summary_cumulative_full_2013_10_16
 select
+  t.`date`,
   t.p,
 
   days_active_daily,
@@ -137,8 +137,6 @@ select
   if(t.checkout_complete_count_lifetime = 1, 'new',
   if(datediff(t.`date`, user_first_event_full.start) / (t.checkout_complete_count_lifetime + 1) < 30, 'core',
   'xz'))) user_class,
-
-  t.`date`
 
 from (
   select 
