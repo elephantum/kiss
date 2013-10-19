@@ -68,6 +68,20 @@ create table olap_summary_cumulative_full_2013_10_16 (
 
   ad_campaign_hit_count_daily int,
   ad_campaign_hit_count_lifetime int,
+
+  cheap_traffic_ad_hit_count_daily int,
+  cheap_traffic_ad_hit_count_lifetime int,
+  actionpay_ad_hit_count_daily int,
+  actionpay_ad_hit_count_lifetime int,
+  yandexmarket_ad_hit_count_daily int,
+  yandexmarket_ad_hit_count_lifetime int,
+  yandex_ad_hit_count_daily int,
+  yandex_ad_hit_count_lifetime int,
+  enter_ad_hit_count_daily int,
+  enter_ad_hit_count_lifetime int,
+  other_ad_hit_count_daily int,
+  other_ad_hit_count_lifetime int,
+
   viewed_product_count_daily int,
   viewed_product_count_lifetime int,
   viewed_category_count_daily int,
