@@ -1,13 +1,13 @@
 library('igraph')
 
-hive.filenames <- list.files('enter_proto_full_2013_09_23/session_pairs', full.names=TRUE)
+hive.filenames <- list.files('enter_proto_full_2013_10_16/session_pairs', full.names=TRUE)
 hive.data <- lapply(
   X=hive.filenames,
   FUN=function(x) {print(x); as.matrix(read.csv(x, sep='\x01', header=FALSE, col.names=c('a', 'b')))})
 
 pairs <- do.call(rbind, hive.data)
 
-g <- graph.edgelist(as.matrix(pairs), directed=FALSE)
+g <- graph.edgelist(pairs, directed=FALSE)
 
 gg <- clusters(g)
 
@@ -32,11 +32,12 @@ session.aliases <- merge(
 )
 
 write.table(
-  file='aliases.csv',
+  file='enter_proto_full_2013_10_16/aliases.csv',
   x=session.aliases[c('alias.main', 'alias')],
-  sep=',',
+  sep='\x01',
   col.names=FALSE,
-  row.names=FALSE
+  row.names=FALSE,
+  quote=FALSE
 )
 
 

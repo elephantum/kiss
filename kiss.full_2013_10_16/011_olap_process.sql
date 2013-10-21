@@ -1,5 +1,7 @@
-insert overwrite table olap_summary_daily_{data_source} partition(`date`)
+insert overwrite table olap_summary_daily_full_2013_10_16
 select
+  `date`,
+
   p, 
   1,
   if(sum(if(event == 'checkout complete', 1, 0)) > 0, 1, 0),
@@ -20,19 +22,18 @@ select
   sum(if(event == 'checkout step 1', 1, 0)) checkout_step_1_count_daily,
   sum(if(event == 'checkout complete', 1, 0)) checkout_complete_count_daily,
 
-  sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily,
-
-  to_date(kiss.dt)
+  sum(coalesce(cast(kiss.order_sum as float), 0)) checkout_complete_sum_daily
 
 from 
   (
     select 
       kiss.`_p` as p,
-      kiss.`date`,
+      to_date(kiss.dt) as `date`,
 
       kiss.`_n` as event,
       kiss.checkout_complete_order_total as order_sum,
 
+      if(kiss.campaign_source is null, 'none',
       if(kiss.campaign_source like 'cheap_traffic', 'cheap_traffic',
       if(kiss.campaign_source like 'actionpay', 'actionpay',
 
@@ -41,15 +42,17 @@ from
       if(kiss.campaign_source like 'enter%', 'enter',
 
       'other'
-      ))))) campaign_source_norm
+      )))))) campaign_source_norm
     from
-    kiss_{data_source} kiss
+    kiss_full_2013_10_16 kiss
   ) kiss
-group by p, `date`;
+group by `date`, p
+order by `date`, p;
 
 
-insert overwrite table olap_summary_daily_normalized_{data_source} partition(`date`)
+insert overwrite table olap_summary_daily_normalized_full_2013_10_16
 select
+  `date`,
   p,
 
   if(sum(days_active_daily) > 0, 1, 0),
@@ -71,9 +74,8 @@ select
   sum(checkout_step_1_count_daily),
   sum(checkout_complete_count_daily),
 
-  sum(checkout_complete_sum_daily),
+  sum(checkout_complete_sum_daily)
 
-  `date`
 from (
   select 
   coalesce(sessions.session, d.p) p,
@@ -100,13 +102,13 @@ from (
   checkout_complete_sum_daily,
 
   `date`
-  from olap_summary_daily_{data_source} d
-  left outer join session_alias_{data_source} sessions on d.p = sessions.alias
+  from olap_summary_daily_full_2013_10_16 d
+  left outer join session_alias_full_2013_10_16 sessions on d.p = sessions.alias
 ) d
 group by p, `date`;
 
 
-insert overwrite table olap_summary_cumulative_{data_source} partition(`date`)
+insert overwrite table olap_summary_cumulative_full_2013_10_16 partition(`date`)
 select
   t.p,
 
@@ -117,6 +119,20 @@ select
 
   ad_campaign_hit_count_daily,
   ad_campaign_hit_count_lifetime,
+
+  cheap_traffic_ad_hit_count_daily,
+  cheap_traffic_ad_hit_count_lifetime,
+  actionpay_ad_hit_count_daily,
+  actionpay_ad_hit_count_lifetime,
+  yandexmarket_ad_hit_count_daily,
+  yandexmarket_ad_hit_count_lifetime,
+  yandex_ad_hit_count_daily,
+  yandex_ad_hit_count_lifetime,
+  enter_ad_hit_count_daily,
+  enter_ad_hit_count_lifetime,
+  other_ad_hit_count_daily,
+  other_ad_hit_count_lifetime,
+
   viewed_product_count_daily,
   viewed_product_count_lifetime,
   viewed_category_count_daily,
@@ -138,7 +154,6 @@ select
   'xz'))) user_class,
 
   t.`date`
-
 from (
   select 
     p,
@@ -151,6 +166,20 @@ from (
 
     ad_campaign_hit_count_daily,
     sum(ad_campaign_hit_count_daily) over w as ad_campaign_hit_count_lifetime,
+
+    cheap_traffic_ad_hit_count_daily,
+    sum(cheap_traffic_ad_hit_count_daily) over w as cheap_traffic_ad_hit_count_lifetime,
+    actionpay_ad_hit_count_daily,
+    sum(actionpay_ad_hit_count_daily) over w as actionpay_ad_hit_count_lifetime,
+    yandexmarket_ad_hit_count_daily,
+    sum(yandexmarket_ad_hit_count_daily) over w as yandexmarket_ad_hit_count_lifetime,
+    yandex_ad_hit_count_daily,
+    sum(yandex_ad_hit_count_daily) over w as yandex_ad_hit_count_lifetime,
+    enter_ad_hit_count_daily,
+    sum(enter_ad_hit_count_daily) over w as enter_ad_hit_count_lifetime,
+    other_ad_hit_count_daily,
+    sum(other_ad_hit_count_daily) over w as other_ad_hit_count_lifetime,
+
     viewed_product_count_daily,
     sum(viewed_product_count_daily) over w as viewed_product_count_lifetime,
     viewed_category_count_daily,
@@ -166,14 +195,14 @@ from (
     checkout_complete_sum_daily,
     sum(checkout_complete_sum_daily) over w as checkout_complete_sum_lifetime
 
-  from olap_summary_daily_full
+  from olap_summary_daily_normalized_full_2013_10_16
   window w as (PARTITION BY p ORDER BY `date` ROWS UNBOUNDED PRECEDING)
 ) t 
 join (
   select
     p,
     min(`date`) as start
-  from olap_summary_daily_full
+  from olap_summary_daily_normalized_full_2013_10_16
   group by p
 ) user_first_event_full on t.p = user_first_event_full.p
 order by p, user_class

@@ -1,4 +1,4 @@
-insert overwrite table olap_summary_daily_{data_source} partition(`date`)
+insert overwrite table olap_summary_daily_full_2013_10_08 partition(`date`)
 select
   p, 
   1,
@@ -20,35 +20,38 @@ select
   sum(if(event == 'checkout step 1', 1, 0)) checkout_step_1_count_daily,
   sum(if(event == 'checkout complete', 1, 0)) checkout_complete_count_daily,
 
-  sum(coalesce(cast(ext_data.order_sum as float), 0)) checkout_complete_sum_daily,
+  sum(coalesce(cast(order_sum as float), 0)) checkout_complete_sum_daily,
 
-  to_date(kiss.dt)
+  `date`
 
 from 
   (
     select 
-      kiss.`_p` as p,
-      kiss.`date`,
+      kiss.p,
+      to_date(kiss.dt) as `date`,
 
-      kiss.`_n` as event,
-      kiss.checkout_complete_order_total as order_sum,
+      kiss.event,
+      kiss.json_data,
 
-      if(kiss.campaign_source like 'cheap_traffic', 'cheap_traffic',
-      if(kiss.campaign_source like 'actionpay', 'actionpay',
+      ext_data.order_sum,
 
-      if(kiss.campaign_source like 'yandexmarket%', 'yandexmarket',
-      if(kiss.campaign_source like 'yandex%', 'yandex',
-      if(kiss.campaign_source like 'enter%', 'enter',
+      if(ext_data.campaign_source like 'cheap_traffic', 'cheap_traffic',
+      if(ext_data.campaign_source like 'actionpay', 'actionpay',
+
+      if(ext_data.campaign_source like 'yandexmarket%', 'yandexmarket',
+      if(ext_data.campaign_source like 'yandex%', 'yandex',
+      if(ext_data.campaign_source like 'enter%', 'enter',
 
       'other'
       ))))) campaign_source_norm
     from
-    kiss_{data_source} kiss
+    kiss_full_2013_10_08 kiss
+    lateral view json_tuple(kiss.json_data, 'checkout complete order total', 'campaign source') ext_data as order_sum, campaign_source
   ) kiss
 group by p, `date`;
 
 
-insert overwrite table olap_summary_daily_normalized_{data_source} partition(`date`)
+insert overwrite table olap_summary_daily_normalized_full_2013_10_08 partition(`date`)
 select
   p,
 
@@ -100,13 +103,13 @@ from (
   checkout_complete_sum_daily,
 
   `date`
-  from olap_summary_daily_{data_source} d
-  left outer join session_alias_{data_source} sessions on d.p = sessions.alias
+  from olap_summary_daily_full_2013_10_08 d
+  left outer join session_alias_full_2013_10_08 sessions on d.p = sessions.alias
 ) d
 group by p, `date`;
 
 
-insert overwrite table olap_summary_cumulative_{data_source} partition(`date`)
+insert overwrite table olap_summary_cumulative_full_2013_10_08 partition(`date`)
 select
   t.p,
 
