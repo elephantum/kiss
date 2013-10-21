@@ -33,6 +33,7 @@ from
       kiss.`_n` as event,
       kiss.checkout_complete_order_total as order_sum,
 
+      if(kiss.campaign_source is null, 'none',
       if(kiss.campaign_source like 'cheap_traffic', 'cheap_traffic',
       if(kiss.campaign_source like 'actionpay', 'actionpay',
 
@@ -41,7 +42,7 @@ from
       if(kiss.campaign_source like 'enter%', 'enter',
 
       'other'
-      ))))) campaign_source_norm
+      )))))) campaign_source_norm
     from
     kiss_full_2013_10_16 kiss
   ) kiss
