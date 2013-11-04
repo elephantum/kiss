@@ -1,0 +1,1 @@
+./elastic-mapreduce --create --alive --name 'Hadoop2' --ami-version 3.0.0 --num-instances 3 --instance-type m1.medium --hive-interactive
